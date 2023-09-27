@@ -4,3 +4,4 @@
 .vscode/launch.json
 .vscode/ipch
 src/auth_config.h
+src/auth_config.h

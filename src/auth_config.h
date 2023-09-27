@@ -1,3 +1,5 @@
+// change this file wih your actual parametrs
+
 #include <Arduino.h>
 #include <ESP8266WiFi.h>
 #include <ESP8266mDNS.h>
@@ -5,7 +7,7 @@
 
 
 //*
-//*  local Blynk configuration
+//*      local Blynk configuration 
 //*
 #if defined(TEST_VERSION)
 char auth[] = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx";             // token for training device
