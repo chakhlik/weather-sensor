@@ -1,0 +1,1 @@
+{"Time":"2022-09-28T15:39:30Z","BMP280":{"Temperature":17.59000015,"Humidity":56.53222656,"Pressure":551.4317017},"TempUnit":"C","MAX44009":{"Illuminance":0.738901794},"Battery":{"Charge":4.704593658}}

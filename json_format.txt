@@ -1,0 +1,18 @@
+{
+"Time":"YYYY-MM-DDTHH:MM:SS",
+"BMP280":
+	{
+	"Temperature":30.9,
+	"Humidity":40,
+	"Pressure":760
+	},
+"TempUnit":"C",
+"MAX44009":
+	{
+	"Illuminance":9999
+	},
+"Battery":
+	{
+	"Charge":100
+	}
+}
