@@ -1,6 +1,6 @@
 //
 //
-//#define BLYNK_PRINT Serial // Определяет объект/порт, который используется для вывода
+//#define BLYNK_PRINT Serial                      //defines output for Blynk mesages
 //#define BLYNK_DEBUG  
 //#define DEBUG_ESP_WIFI
 //#define DEBUG_ESP_PORT Serial
@@ -25,25 +25,28 @@
 #include <NTPClient.h>
 
 
+//*
+//* Constants
+//*
 #define MARK_P 64
 #define PARAM_P 65
 #define BASE_P 70
 #define NET_P 72
 #define BUF_BEGIN 80
 #define MAX_TRIES 60
-#define SLEEP_TIME 15e6                                       // microseconds - 1 sleep quant
-#define VDD_MAX 4.2f
+#define SLEEP_TIME 15e6                                       // 1 sleep quantum of time (microseconds)
+#define VDD_MAX 4.25f
 #define VDD_MIN 3.1f
 
 #ifdef TEST_VERSION
-#define TIME_CHECK_PERIOD 0x0003                                // periods to skip before next pool NTP
-#define STANDARD_ERROR 0                                     // msecs per minute
+#define TIME_CHECK_PERIOD 0x0003                              // periods to skip before next pool NTP
+#define STANDARD_ERROR 0                                      // msecs per minute
 #else
-#define TIME_CHECK_PERIOD 0x01FF                                // periods to skip before next pool NTP
-#define STANDARD_ERROR -2000                                     // msecs per minute
+#define TIME_CHECK_PERIOD 0x01FF                              // periods to skip before next pool NTP
+#define STANDARD_ERROR -2000                                  // msecs per minute
 #endif
 
-#include <auth_config.h>
+#include <auth_config.h>                                      // authentication and private information
 
 //*
 //*        Varaibles for deepsleep mode
@@ -59,10 +62,10 @@ uint32_t AWAKE = 0x0;
 GyverBME280 bme; // I2C
 MAX44009 light;
 
-float h; //humidity
-float t; //temperature
-float l; //luminance
-float p; //pressure
+float h;                                                      //humidity
+float t;                                                      //temperature
+float l;                                                      //luminance
+float p;                                                      //pressure
 long rssi;
 float vdd;
 float charge=100.0;
@@ -70,7 +73,7 @@ uint32_t tt;
 byte NO_PRINT=0;
 byte OTA_REQ=0;
 
-uint32_t hFilter=BUF_BEGIN;     // буфер на 5 значений float
+uint32_t hFilter=BUF_BEGIN;                                   // 5 readings buffer (float)
 uint32_t tFilter=BUF_BEGIN+6; 
 uint32_t lFilter=BUF_BEGIN+12; 
 uint32_t pFilter=BUF_BEGIN+18; 
@@ -78,18 +81,18 @@ float buffer[5];
 float buff;
 uint32_t count = 0;
 
-struct saved_params_t {                     // описание структуры хранения параметров программы
-  uint32_t localEpochTime :32;              //  
-  uint32_t lastTimeCheck :32;
-  byte NO_PRINT :1;
-  byte OTA_REQ :1; 
+struct saved_params_t {                     // flags and paraneters structure
+  uint32_t localEpochTime :32;              // Epoch time counted locally
+  uint32_t lastTimeCheck :32;               // Epoch time last checked by NTP
+  byte NO_PRINT :1;                         // don't send informaion to serial
+  byte OTA_REQ :1;                          // start OTA upgrade session
   byte s1 :1;                               // I2C first sensor present
   byte s2 :1;                               // I2C second sensor present
   byte use_old_network :1;                  // need to find new network
   byte poolNtp :1;                          // get time fron NTP
-  uint32_t sleep :7;                        // количество квантов времени сна
-  uint32_t d :14;                           // operations time duration
-  uint32_t cnt :21;                         // счетчик циклов
+  uint32_t sleep :7;                        // current quantums of sleeping
+  uint32_t d :14;                           // time duration of the last cycle operations (milliseconds)
+  uint32_t cnt :21;                         // cycles counter
   int32_t error :16;                        // error of deepsleep timing
   
 };
@@ -100,7 +103,7 @@ static union {
   saved_params_t flg;
 };
 
-struct saved_net_config_t {       // описание структуры хранения параметров сети
+struct saved_net_config_t {                 // network parameters structure
   char ssid[13];
   uint8_t bssid[6];
   IPAddress ip4;
@@ -722,6 +725,7 @@ void loop() {
   flg.OTA_REQ=0;
   flg.cnt=0;
   saveParams();
+  ESP.rtcUserMemoryWrite(MARK_P, &WAKE_TEST, 4);
 
   if((WiFi.status() == WL_CONNECTED)) 
     {     

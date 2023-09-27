@@ -5,7 +5,7 @@
 
 
 //*
-//*  Blynk configuration
+//*  local Blynk configuration
 //*
 #if defined(TEST_VERSION)
 char auth[] = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx";             // token for training device
@@ -30,7 +30,7 @@ const char* mqtt_server2 = "xxx.yyy.net";                      //  MQTT server d
 const char* mqtt_clientId = "Weather_Sensor";
 const char* mqtt_username = "username";
 const char* mqtt_password = "password";               
-const char* topic1 = "tele/Weather_01/SENSOR";              //Tasmota style topics
+const char* topic1 = "tele/Weather_01/SENSOR";                  //Tasmota style MQTT topics
 //const char* topic2 = "stat/Weather_01/POWER";
 //const char* topic3 = "cmnd/Weather_01/POWER";             
 
@@ -38,7 +38,7 @@ const char* topic1 = "tele/Weather_01/SENSOR";              //Tasmota style topi
 //*
 //*       NTP configuration
 //*
-const long utcOffsetInSeconds = 10800;                      //time zone Moscow  UTC+3
+const long utcOffsetInSeconds = 10800;                          //time zone Moscow  UTC+3
 const char* ntp_server3 = "ntp4.stratum2.ru"; 
 const char* ntp_server2 = "ru.pool.ntp.org"; 
 const char* ntp_server1 = "ntp.ix.ru";
