@@ -5,7 +5,7 @@
 //#define DEBUG_ESP_WIFI
 //#define DEBUG_ESP_PORT Serial
 #define TEST_VERSION
-#define CURRENT_VER_N "2023-09-27 v10.09"
+#define CURRENT_VER_N "2023-09-28 v10.09"
 
 
 
@@ -47,6 +47,7 @@
 #endif
 
 #include <auth_config.h>                                      // authentication and private information
+//#include "D:\Development\include\auth_config_private.h"
 
 //*
 //*        Varaibles for deepsleep mode
@@ -244,7 +245,7 @@ void sendToBlynk()
     Blynk.virtualWrite(V8, vdd);
     Blynk.virtualWrite(V9, float(flg.d));
     
-    if (flg.cnt <3) Blynk.virtualWrite(V13, CURRENT_VER_N);    //переписать!!!
+    if (flg.cnt <3) Blynk.virtualWrite(V13, CURRENT_VER_N); 
     if (flg.use_old_network==0)
     {
       
@@ -564,8 +565,8 @@ void readSensor()
   p = filtered(pFilter, flg.s1 ? (bme.readPressure() * 0.00750061683F)   : (((float)random(70))/100.0 + 20.0));
   h = filtered(hFilter, flg.s1 ? bme.readHumidity()                      : (((float)random(100))/100.0 + 40.0*(float)(flg.cnt>>5)));
   l = filtered(lFilter, flg.s2 ? light.get_lux()                         : 5.0F*(float)sin((float)flg.cnt/10.186F) + (float)random(100)/30.0F);
-  vdd = analogRead(A0) * 4.59433e-3;                                      // Замена одним коэффициентом / (1023.0 / 4.7)   R=150kOhm;
-  charge = 101.0F - (101.0F / pow(1.0F + pow(1.33F * (vdd - VDD_MIN)/(VDD_MAX - VDD_MIN), 4.5F), 3.0F));    // уровень заряда в процентах                            
+  vdd = analogRead(A0) * 4.59433e-3;                                                                        // coef for calculrting real voltage / (1023.0 / 4.7)   R=150kOhm;
+  charge = 101.0F - (101.0F / pow(1.0F + pow(1.33F * (vdd - VDD_MIN)/(VDD_MAX - VDD_MIN), 4.5F), 3.0F));    // battery charge level for Li-Ion accu (%)                           
   if (!flg.NO_PRINT) Serial.println("Sensors read");
 }
 /*****************************************************************************************************************************************/
@@ -583,7 +584,7 @@ void setup() {
 
   if (marker == WAKE_TEST)
     {
-    ESP.rtcUserMemoryRead(PARAM_P, &f_array[0], sizeof(flg)); //read flags
+    ESP.rtcUserMemoryRead(PARAM_P, &f_array[0], sizeof(flg)); //read saved flags
     }
     else
     {
@@ -713,7 +714,7 @@ void loop() {
     ESP.rtcUserMemoryWrite(MARK_P, &WAKE_TEST, 4);
     saveParams();
     delay( 1 );
-    ESP.deepSleep(time_to_sleep, (flg.cnt & 0xF) == 0 ? WAKE_RF_DEFAULT : WAKE_NO_RFCAL);               // sleeping standart time
+    ESP.deepSleep(time_to_sleep, (flg.cnt & 0xF) == 0 ? WAKE_RF_DEFAULT : WAKE_NO_RFCAL);               // sleeping standart time after full cycle
     delay(1000);
     }
 
@@ -725,7 +726,9 @@ void loop() {
   flg.OTA_REQ=0;
   flg.cnt=0;
   saveParams();
+  delay( 1 );
   ESP.rtcUserMemoryWrite(MARK_P, &WAKE_TEST, 4);
+  delay( 100 );
 
   if((WiFi.status() == WL_CONNECTED)) 
     {     

@@ -1,4 +1,4 @@
-// change this file wih your actual parametrs
+// change this file wih your actual parametrs 
 
 #include <Arduino.h>
 #include <ESP8266WiFi.h>
