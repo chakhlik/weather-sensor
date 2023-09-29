@@ -4,8 +4,8 @@
 //#define BLYNK_DEBUG  
 //#define DEBUG_ESP_WIFI
 //#define DEBUG_ESP_PORT Serial
-#define TEST_VERSION
-#define CURRENT_VER_N "2023-09-28 v10.09"
+//#define TEST_VERSION
+#define CURRENT_VER_N "2023-09-29 v10.10"
 
 
 
@@ -387,8 +387,8 @@ void sendToMqtt()
   
  
   
-  StaticJsonDocument<220> j_doc;
-  char j_send_string[220];
+  StaticJsonDocument<230> j_doc;
+  char j_send_string[230];
 
   j_doc["Time"]=formatedTime;
   j_doc["BMP280"]["temperature"]= t;
@@ -472,8 +472,8 @@ void connect_new_network()
     if (!flg.NO_PRINT) Serial.printf("%d: %s, Ch:%d (%ddBm) %s\n", i + 1, WiFi.SSID(i).c_str(), WiFi.channel(i), WiFi.RSSI(i), WiFi.encryptionType(i) == ENC_TYPE_NONE ? "open" : "");
     if (   WiFi.SSID(i) == ssid
         || WiFi.SSID(i) == ssid_a1
-        || WiFi.SSID(i) == ssid_a2
         #ifdef TEST_VERSION 
+        || WiFi.SSID(i) == ssid_a2
         || WiFi.SSID(i) == ssid_a3
         #endif
         )
@@ -714,7 +714,7 @@ void loop() {
     ESP.rtcUserMemoryWrite(MARK_P, &WAKE_TEST, 4);
     saveParams();
     delay( 1 );
-    ESP.deepSleep(time_to_sleep, (flg.cnt & 0xF) == 0 ? WAKE_RF_DEFAULT : WAKE_NO_RFCAL);               // sleeping standart time after full cycle
+    ESP.deepSleep(time_to_sleep, (flg.cnt & 0xF) == 1 ? WAKE_RF_DEFAULT : WAKE_NO_RFCAL);               // sleeping standart time after full cycle
     delay(1000);
     }
 
@@ -725,6 +725,7 @@ void loop() {
 
   flg.OTA_REQ=0;
   flg.cnt=0;
+  flg.use_old_network=0;
   saveParams();
   delay( 1 );
   ESP.rtcUserMemoryWrite(MARK_P, &WAKE_TEST, 4);

@@ -31,8 +31,12 @@ const char* mqtt_server2 = "xxx.yyy.net";                      //  MQTT server d
 
 const char* mqtt_clientId = "Weather_Sensor";
 const char* mqtt_username = "username";
-const char* mqtt_password = "password";               
-const char* topic1 = "tele/Weather_01/SENSOR";                  //Tasmota style MQTT topics
+const char* mqtt_password = "password";    
+#if defined(TEST_VERSION)           
+const char* topic1 = "tele/Weather_testing/SENSOR";                  //Tasmota style MQTT topics
+#else
+const char* topic1 = "tele/Weather_01/SENSOR";
+#endif
 //const char* topic2 = "stat/Weather_01/POWER";
 //const char* topic3 = "cmnd/Weather_01/POWER";             
 
