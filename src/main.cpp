@@ -5,7 +5,7 @@
 //#define DEBUG_ESP_WIFI
 //#define DEBUG_ESP_PORT Serial
 //#define TEST_VERSION
-#define CURRENT_VER_N "2023-09-29 v10.10"
+#define CURRENT_VER_N "2024-11-16 v11.04"
 
 
 
@@ -13,6 +13,8 @@
 #include <Wire.h>
 #include <GyverBME280.h>
 #include <MAX44009.h>
+//#include <HTU21D.h>
+#include "SHT31.h"
 #include <PubSubClient.h>
 #include <ArduinoJson.h>
 #include <ESP8266WiFi.h>
@@ -39,7 +41,7 @@
 #define VDD_MIN 3.1f
 
 #ifdef TEST_VERSION
-#define TIME_CHECK_PERIOD 0x0003                              // periods to skip before next pool NTP
+#define TIME_CHECK_PERIOD 0x000F                              // periods to skip before next pool NTP
 #define STANDARD_ERROR 0                                      // msecs per minute
 #else
 #define TIME_CHECK_PERIOD 0x01FF                              // periods to skip before next pool NTP
@@ -62,6 +64,8 @@ uint32_t AWAKE = 0x0;
 //*
 GyverBME280 bme; // I2C
 MAX44009 light;
+//HTU21D myHTU21D(HTU21D_RES_RH12_TEMP14);
+SHT31 sht;
 
 float h;                                                      //humidity
 float t;                                                      //temperature
@@ -89,12 +93,13 @@ struct saved_params_t {                     // flags and paraneters structure
   byte OTA_REQ :1;                          // start OTA upgrade session
   byte s1 :1;                               // I2C first sensor present
   byte s2 :1;                               // I2C second sensor present
+  byte s3 :1;                               // I2C third sensor present
   byte use_old_network :1;                  // need to find new network
   byte poolNtp :1;                          // get time fron NTP
   uint32_t sleep :7;                        // current quantums of sleeping
   uint32_t d :14;                           // time duration of the last cycle operations (milliseconds)
   uint32_t cnt :21;                         // cycles counter
-  int32_t error :16;                        // error of deepsleep timing
+  int32_t error :15;                        // error of deepsleep timing
   
 };
 
@@ -187,6 +192,28 @@ void initSensor()
     }
     if (i==0) {if (!flg.NO_PRINT) Serial.println(" not found.");}
   }
+
+  if (!flg.NO_PRINT) Serial.print("SHT30 sensor ");
+  Wire.begin();
+  for (int i=4; i >= 0; i--)
+  {
+    //if (!myHTU21D.begin())
+    if (!sht.begin(0x45))
+    {
+       if (!flg.NO_PRINT) Serial.print(".");
+       flg.s3 = 0;
+       delay(100); 
+    }
+    else
+    {
+       if (!flg.NO_PRINT) Serial.println("is active.");
+       flg.s3 = 1;
+       break;
+    }
+    if (i==0) {if (!flg.NO_PRINT) Serial.println(" not found.");}
+  }
+
+
 
   if (!flg.NO_PRINT) Serial.print("MAX44009 sensor ");
   for (int i=4; i >= 0; i--)
@@ -559,11 +586,14 @@ float filtered(uint32_t _memPos, float newVal)
 void readSensor()
 {
   if (!flg.NO_PRINT) Serial.println("Start reading sensors");
-  bme.oneMeasurement();
+  if (flg.s1) bme.oneMeasurement();
+  if (flg.s3) sht.read();
   while (bme.isMeasuring());
-  t = filtered(tFilter, flg.s1 ? bme.readTemperature()                   : (((float)random(30))/100.0 + 10.0));
+
+  h = filtered(hFilter, flg.s1 ? bme.readHumidity()                      : (flg.s3 ? sht.getHumidity() : (((float)random(100))/100.0 + 40.0*(float)(flg.cnt>>5))));
+  t = filtered(tFilter, flg.s1 ? bme.readTemperature()                   : (flg.s3 ? sht.getTemperature() : (((float)random(30))/100.0 + 10.0)));
   p = filtered(pFilter, flg.s1 ? (bme.readPressure() * 0.00750061683F)   : (((float)random(70))/100.0 + 20.0));
-  h = filtered(hFilter, flg.s1 ? bme.readHumidity()                      : (((float)random(100))/100.0 + 40.0*(float)(flg.cnt>>5)));
+  
   l = filtered(lFilter, flg.s2 ? light.get_lux()                         : 5.0F*(float)sin((float)flg.cnt/10.186F) + (float)random(100)/30.0F);
   vdd = analogRead(A0) * 4.59433e-3;                                                                        // coef for calculrting real voltage / (1023.0 / 4.7)   R=150kOhm;
   charge = 101.0F - (101.0F / pow(1.0F + pow(1.33F * (vdd - VDD_MIN)/(VDD_MAX - VDD_MIN), 4.5F), 3.0F));    // battery charge level for Li-Ion accu (%)                           
